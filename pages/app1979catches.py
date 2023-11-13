@@ -1,0 +1,103 @@
+import dash
+from dash import html,dcc, dash_table, Output, Input, State
+import dash_bootstrap_components as dbc
+from .sidebar_1979 import sidebar
+import pandas as pd
+import plotly.figure_factory as ff
+import plotly.express as px
+
+dash.register_page(__name__,name='CATCH RECORDS',order=4)
+
+def layout():
+    return html.Div([
+    dbc.Row(
+        [
+            dbc.Col(
+                [
+                    sidebar()
+                ], xs=4, sm=4, md=2, lg=2, xl=2, xxl=2),
+
+            dbc.Col(
+                [
+                    html.H3('CATCHES - 1979 ODI WORLD CUP', style={'textAlign':'center'}),
+                    html.Br(),
+                    html.Div([dcc.Dropdown(['MOST CATCHES','MOST CATCHES IN AN INNINGS'], id='request_catch_1979')]),
+                    html.Br(),
+                    html.Div(
+                        [
+                            dbc.Button("SUBMIT", id="inp-button", className="data_input", n_clicks=0),
+                        ], style={"display": "flex", "justifyContent": "center"},
+                    ),
+                    html.Br(),
+                    html.Div([], id='service_1_catch_1979'),
+                    html.Br(),
+                    html.Div([], id='service_2_catch_1979')
+                ], xs=10, sm=10, md=10, lg=10, xl=10, xxl=10)
+        ]
+    )
+])
+
+@dash.callback(
+
+    [
+        Output('service_1_catch_1979','children'),
+        Output('service_2_catch_1979','children'),
+    ],
+
+    [
+        #Input('teams', "value"),
+        Input('inp-button', "n_clicks")
+    ],
+
+    [
+        State("request_catch_1979", 'value'),
+        State('service_1_catch_1979','children'),
+        State('service_2_catch_1979','children'),
+    ],
+
+        prevent_initial_call=True,
+
+    )
+
+def output(n_clicks,need,o1,o2):
+
+    catches = pd.read_excel('assets/1979_World_Cup/most_catches_1979.xlsx')
+    catches_in_an_innings = pd.read_excel('assets/1979_World_Cup/most_catches_in_an_innings_1979.xlsx')
+
+    if need == 'MOST CATCHES':
+        catch = catches.sort_values(by=['Catches'],ascending=False)
+        catch_data = catch[['Player','Matches','Catches','Country']]
+        catch_data = pd.DataFrame(catch_data)
+        catch_10 = catch.head(10)
+        df1_fig = dbc.Table.from_dataframe(catch_data, striped=True, bordered=True, hover=True)
+
+        fig_1 = px.bar(catch_10, x='Player', y='Catches',
+                     hover_data=['Player','Matches','Catches','Country'], color='Catches',
+                     #labels={'pop': 'population of Canada'},
+                     height=400)
+        fig_1.update_layout(width=1200, height=500)
+
+        return [
+            dcc.Graph(figure=fig_1),
+            html.Div(df1_fig)
+            #bat_table
+        ]
+
+    elif need == 'MOST CATCHES IN AN INNINGS':
+        catch = catches_in_an_innings.sort_values(by=['Catches'],ascending=False)
+        catch_data = catch[['Player','Catches','Country','Opposition']]
+        catch_10 = catch.head(10)
+        catch_data = pd.DataFrame(catch_data)
+        df1_fig = dbc.Table.from_dataframe(catch_data, striped=True, bordered=True, hover=True)
+
+        fig_1 = px.bar(catch_10, x='Player', y='Catches',
+                     hover_data=['Player','Catches','Country','Opposition'], color='Catches',
+                     #labels={'pop': 'population of Canada'},
+                     height=400)
+        fig_1.update_layout(width=1200, height=500)
+
+        return [
+            dcc.Graph(figure=fig_1),
+            html.Div(df1_fig)
+            #bat_table
+        ]
