@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+pd.set_option('future.no_silent_downcasting', True)
 
 teams_values = {
     'United State of America':0.1,
